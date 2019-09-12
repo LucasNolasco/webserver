@@ -6,7 +6,7 @@ import socket
 
 class WebServer:
     def main(self):
-        port = 1234
+        port = 6789
         host = 'localhost'
         
         tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -49,17 +49,22 @@ class HttpRequest():
         content_type_line = ""
         entity_body = ""
         
+        print file_exists
+
         if(file_exists):
             status_line = "0"
-            content_type_line = "Content-type: " + self.contentType(file_name) + self.CRLF
+            content_type_line = "Content-Type: " + self.contentType(file_name) + self.CRLF
 
         else:
-            status_line = "404 Not Found"
-            content_type_line = "text/html"
+            status_line = "HTTP/1.0 404 Not Found"
+            content_type_line = "Content-Type: text/html"
             entity_body = "<HTML>" + "<HEAD><TITLE>Not Found</TITLE></HEAD>" + "<BODY>Not Found</BODY></HTML>"
 
         self.request_socket.send(status_line)
+        self.request_socket.send(self.CRLF)
         self.request_socket.send(content_type_line)
+        self.request_socket.send(self.CRLF)
+
         self.request_socket.send(self.CRLF)
 
         if(file_exists):
@@ -73,6 +78,7 @@ class HttpRequest():
         else:
             self.request_socket.send(entity_body)
 
+        
         self.request_socket.close()
     
     def contentType(self, file_name):
