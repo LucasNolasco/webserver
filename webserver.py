@@ -6,7 +6,7 @@ import socket
 
 class WebServer:
     def main(self):
-        port = 6789
+        port = 1234
         host = 'localhost'
         
         tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -52,7 +52,7 @@ class HttpRequest():
         print file_exists
 
         if(file_exists):
-            status_line = "0"
+            status_line = "HTTP/1.0 200 OK"
             content_type_line = "Content-Type: " + self.contentType(file_name) + self.CRLF
 
         else:
@@ -71,6 +71,7 @@ class HttpRequest():
             file_piece = fis.read(1024)
             while(file_piece):
                 self.request_socket.send(file_piece)
+                self.request_socket.send(self.CRLF)
                 file_piece = fis.read(1024)
 
             fis.close()
@@ -85,6 +86,13 @@ class HttpRequest():
         file_end = file_name.split(".")[-1]
         if (file_end == "htm" or file_end == "html"):
             return "text/html"
+
+        elif(file_end == "jpg"):            
+            return "image/jpeg"
+
+        elif(file_end == "png" or file_end == "gif"):
+            return "image/" + file_end
+
 
         return "application/octet-stream"
 
