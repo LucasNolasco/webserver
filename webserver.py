@@ -7,7 +7,7 @@ import socket
 class WebServer:
     def main(self):
         port = 1234
-        host = 'localhost'
+        host = '192.168.106.14'
         
         tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tcp.bind((host, port))
@@ -36,50 +36,52 @@ class HttpRequest():
         request_line = input_stream.split(self.CRLF)[0]
 
         print request_line
-        file_name = request_line.split(" ")[1]
-        file_name = os.getcwd() + file_name
 
-        file_exists = True
-        if(os.path.isfile(file_name)):
-            fis = open(file_name, "rb")
-        else:
-            file_exists = False
+        if request_line.split(" ")[0] == "GET":
+            file_name = request_line.split(" ")[1]
+            file_name = os.getcwd() + file_name
 
-        status_line = ""
-        content_type_line = ""
-        entity_body = ""
-        
-        print file_exists
+            file_exists = True
+            if(os.path.isfile(file_name)):
+                fis = open(file_name, "rb")
+            else:
+                file_exists = False
 
-        if(file_exists):
-            status_line = "HTTP/1.0 200 OK"
-            content_type_line = "Content-Type: " + self.contentType(file_name) + self.CRLF
+            status_line = ""
+            content_type_line = ""
+            entity_body = ""
+            
+            if(file_exists):
+                status_line = "HTTP/1.0 200 OK"
+                content_type_line = "Content-Type: " + self.contentType(file_name)
 
-        else:
-            status_line = "HTTP/1.0 404 Not Found"
-            content_type_line = "Content-Type: text/html"
-            entity_body = "<HTML>" + "<HEAD><TITLE>Not Found</TITLE></HEAD>" + "<BODY>Not Found</BODY></HTML>"
+            else:
+                status_line = "HTTP/1.0 404 Not Found"
+                content_type_line = "Content-Type: text/html"
+                entity_body = "<HTML>" + "<HEAD><TITLE>Not Found</TITLE></HEAD>" + "<BODY>Not Found</BODY></HTML>"
 
-        self.request_socket.send(status_line)
-        self.request_socket.send(self.CRLF)
-        self.request_socket.send(content_type_line)
-        self.request_socket.send(self.CRLF)
+            self.request_socket.send(status_line)
+            self.request_socket.send(self.CRLF)
+            self.request_socket.send(content_type_line)
+            self.request_socket.send(self.CRLF)
 
-        self.request_socket.send(self.CRLF)
+            self.request_socket.send(self.CRLF)
 
-        if(file_exists):
-            file_piece = fis.read(1024)
-            while(file_piece):
-                self.request_socket.send(file_piece)
-                self.request_socket.send(self.CRLF)
+            if(file_exists):
                 file_piece = fis.read(1024)
+                while(file_piece):
+                    self.request_socket.send(file_piece)
+                    file_piece = fis.read(1024)
 
-            fis.close()
+                fis.close()
+
+            else:
+                self.request_socket.send(entity_body)
 
         else:
-            self.request_socket.send(entity_body)
+            print "Falha na execucao"
 
-        
+        self.request_socket.shutdown(socket.SHUT_RDWR)        
         self.request_socket.close()
     
     def contentType(self, file_name):
